@@ -2,6 +2,7 @@ package shoppingcart;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -54,6 +55,42 @@ public class ShoppingCart {
 		}
 		return itemsListIndexed;
 	}
+	
+	public BigDecimal calculateTotalCostWithOffer(
+			ArrayList<CartItem> cartItems) {
+		Map<String, Double> itemValue = new HashMap<String, Double>();
+		ItemRates itemRates = new ItemRates();
+		itemValue = itemRates.getRates();
+		ArrayList<String> itemNameList = new ArrayList<String>();
+		for (CartItem cartItem : cartItems) {
+			itemNameList.add(cartItem.getProduct());
+		}
+		int numberOfApples = (Integer)Collections.frequency(itemNameList, Items.Apple.toString());
+		int numberOfOranges = (Integer)Collections.frequency(itemNameList, Items.Orange.toString());
+		
+
+		// buy one get one free on Apples
+		if (numberOfApples % 2 == 0) {
+			numberOfApples = numberOfApples / 2;
+		} else {
+			numberOfApples = (numberOfApples + 1) / 2;
+		}
+
+		// 3 for the price of 2 on Oranges
+		if ((numberOfOranges + 1) % 3 == 0) {
+			numberOfOranges = ((numberOfOranges + 1) / 3) * 2;
+		} else if ((numberOfOranges + 2) % 3 == 0) {
+			numberOfOranges = (((numberOfOranges + 2) / 3) * 2) - 1;
+		} else if (numberOfOranges % 3 == 0) {
+			numberOfOranges = (numberOfOranges / 3) * 2;
+		}
+		
+		BigDecimal totalCostForApples = BigDecimal.valueOf(itemValue.get(Items.Apple.toString())).multiply(new BigDecimal(numberOfApples));
+		BigDecimal totalCostForOranges = BigDecimal.valueOf(itemValue.get(Items.Orange.toString())).multiply(new BigDecimal(numberOfOranges));
+		
+		totalCostForApples = totalCostForApples.add(totalCostForOranges);
+		return totalCostForApples;
+	}
 
 	/**
 	 * Offer a menu of options: 
@@ -96,7 +133,7 @@ public class ShoppingCart {
 					CartItem cartItem = new CartItem(itemName,
 							itemRate.get(itemName));
 					cartItems.add(cartItem);
-					total = shoppingCart.calculateTotalCost(cartItems);
+					total = shoppingCart.calculateTotalCostWithOffer(cartItems);
 					System.out.println("Total:" + total);
 					break;
 				case 2:
@@ -105,7 +142,7 @@ public class ShoppingCart {
 					break;
 				case 3:
 					//end shopping and view total amount
-					total = shoppingCart.calculateTotalCost(cartItems);
+					total = shoppingCart.calculateTotalCostWithOffer(cartItems);
 					System.out.println("Total is " + total);
 					System.out.println("Exiting");
 					keepGoing = false;
